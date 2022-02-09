@@ -36,13 +36,13 @@ public static class InputUtil
         return input.ToString();
     }
 
-    public static string? InputReadField(string prefix, ConsoleColor prefixColor = ConsoleColor.White)
+    public static string InputReadField(string prefix, ConsoleColor prefixColor = ConsoleColor.White)
     {
         Console.ForegroundColor = prefixColor;
         Console.Write(prefix);
         Console.ResetColor();
         
-        return Console.ReadLine();
+        return Console.ReadLine() ?? string.Empty;
     }
     
     public static string InputReadFieldPassword(string prefix, ConsoleColor prefixColor = ConsoleColor.White)

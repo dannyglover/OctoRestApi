@@ -19,7 +19,13 @@ internal static class Program
         var password = InputUtil.InputReadFieldPassword("Octoprint Password: ", ConsoleColor.Green);
         Console.WriteLine();
         
-        // TODO: verify url is valid (format wise) before continuing
+        // abort if the octoprintUrl is malformed
+        if (!UriUtil.IsValidHttpUri(octoprintUrl))
+        {
+            ConsoleUtil.WriteLine(@$"Invalid Octoprint Url: {octoprintUrl}. Please check your input and try running the program again. Aborting",
+                ConsoleColor.Red);
+            return;
+        }
         
         // create the OctoApi instance
         var octoApi = new OctoApi(octoprintUrl)
@@ -32,7 +38,9 @@ internal static class Program
         
         // get the response data model
         var loginResponseDataModel = octoApi.OctoDataModel.OctoLoginResponseDataModel;
-        
-        Console.WriteLine($@"User name is: {loginResponseDataModel?.Name}");
+
+        Console.WriteLine(loginResponseDataModel == null
+            ? "LoginResponseDataModel not initialized, due to unexpected response."
+            : $@"User name is: {loginResponseDataModel?.Name}");
     }
 }

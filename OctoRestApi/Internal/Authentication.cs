@@ -24,7 +24,7 @@ internal class Authentication
         OctoApiInstance = octoApi;
         OctoHttpClient = OctoApiInstance.OctoHttpClient;
         OctoDataModel = OctoApiInstance.OctoDataModel;
-        Endpoint = @"/api/login";
+        Endpoint = "login";
         DebugMessagePrefix = "Authentication > Login |";
     }
 
@@ -57,27 +57,25 @@ internal class Authentication
             Password = password
         };
         
-        // TODO: handle connection refused exception
-        // happens for instance if you enter an incorrect url
-        
         // issue the request and get the response
-        var httpRequestTask = OctoHttpClient.PostAsync(Endpoint, JsonUtil.SerializeObject(requestData));
-        var httpResponse = await httpRequestTask;
-
-        // if the request wasn't successful
-        if (httpResponse.StatusCode != HttpStatusCode.OK)
+        try
+        {
+            var httpRequestTask = OctoHttpClient.PostAsync(Endpoint, JsonUtil.SerializeObject(requestData));
+            var httpResponse = await httpRequestTask;
+            httpResponse.EnsureSuccessStatusCode();
+            
+            // get the json data from the response
+            var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
+            OctoDataModel.OctoLoginResponseDataModel = JsonConvert.DeserializeObject<LoginResponseDataModel>(jsonResponse);
+        }
+        catch (HttpRequestException exception)
         {
             if (OctoApiInstance.DebugMode)
             {
-                ConsoleUtil.WriteLine(@$"{DebugMessagePrefix} StatusCode: {httpResponse.StatusCode}",
+                Console.WriteLine($"Exception caught: {exception.Message}");
+                ConsoleUtil.WriteLine(@$"{DebugMessagePrefix} StatusCode: {exception.StatusCode}",
                     ConsoleColor.Red);
             }
-            
-            return;
         }
-        
-        // get the json data from the response
-        var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-        OctoDataModel.OctoLoginResponseDataModel = JsonConvert.DeserializeObject<LoginResponseDataModel>(jsonResponse);
     }
 }
