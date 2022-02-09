@@ -1,8 +1,8 @@
 using System.Text;
 
-namespace TestConsoleApp;
+namespace TestConsoleApp.Utils;
 
-public static class ConsoleTools
+public static class InputUtil
 {
     private static string ConsoleReadHidden()
     {
@@ -36,15 +36,21 @@ public static class ConsoleTools
         return input.ToString();
     }
 
-    public static string? InputReadField(string prefix)
+    public static string? InputReadField(string prefix, ConsoleColor prefixColor = ConsoleColor.White)
     {
+        Console.ForegroundColor = prefixColor;
         Console.Write(prefix);
+        Console.ResetColor();
+        
         return Console.ReadLine();
     }
     
-    public static string? InputReadFieldPassword(string prefix)
+    public static string InputReadFieldPassword(string prefix, ConsoleColor prefixColor = ConsoleColor.White)
     {
+        Console.ForegroundColor = prefixColor;
         Console.Write(prefix);
+        Console.ResetColor();
+        
         return ConsoleReadHidden();
     }
 }
