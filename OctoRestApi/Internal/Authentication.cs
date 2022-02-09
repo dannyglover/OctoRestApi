@@ -24,7 +24,7 @@ internal class Authentication
         OctoApiInstance = octoApi;
         OctoHttpClient = OctoApiInstance.OctoHttpClient;
         OctoDataModel = OctoApiInstance.OctoDataModel;
-        Endpoint = $@"{OctoApiInstance.OctoprintUrl}/api/login";
+        Endpoint = @"/api/login";
         DebugMessagePrefix = "Authentication > Login |";
     }
 

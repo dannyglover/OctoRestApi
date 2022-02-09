@@ -22,13 +22,15 @@ internal static class Program
         // TODO: verify url is valid (format wise) before continuing
         
         // create the OctoApi instance
-        var octoApi = new OctoApi(octoprintUrl);
-        octoApi.SetDebugMode(true);
-        
+        var octoApi = new OctoApi(octoprintUrl)
+        {
+            DebugMode = true
+        };
+
         // login
         await octoApi.Login(username, password);
         
-        // get the users name
+        // get the response data model
         var loginResponseDataModel = octoApi.OctoDataModel.OctoLoginResponseDataModel;
         
         Console.WriteLine($@"User name is: {loginResponseDataModel?.Name}");

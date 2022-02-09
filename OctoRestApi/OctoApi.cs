@@ -19,15 +19,12 @@ public class OctoApi
         OctoHttpClient = new HttpClient();
         OctoDataModel = new OctoDataModel();
         OctoAuthentication = new Authentication(this);
+        
+        OctoHttpClient.BaseAddress = new Uri(octoprintUrl ?? throw new ArgumentNullException(nameof(octoprintUrl)));
     }
 
     public async Task Login(string username, string password)
     {
         await OctoAuthentication.Login(username, password);
-    }
-
-    public void SetDebugMode(bool enable)
-    {
-        DebugMode = enable;
     }
 }
