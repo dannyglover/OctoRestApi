@@ -41,6 +41,11 @@ internal static class Program
 
         Console.WriteLine(loginResponseDataModel == null
             ? "LoginResponseDataModel not initialized, due to unexpected response."
-            : $@"User name is: {loginResponseDataModel?.Name}");
+            : $@"User name is: {loginResponseDataModel.Name}");
+        
+        // set tool 0 (hot-end) to 50 degrees
+        await octoApi.SetTargetToolTemperature(new[] {0}, 40);
+        
+        Console.WriteLine($@"Tool 0 temperature request success: {octoApi.OctoDataModel.OctoPrintToolResponseDataModel is {Success: true}}");
     }
 }

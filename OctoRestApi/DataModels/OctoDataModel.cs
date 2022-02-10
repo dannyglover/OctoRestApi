@@ -7,4 +7,5 @@ namespace OctoRestApi.DataModels;
 public class OctoDataModel
 {
     public LoginResponseDataModel? OctoLoginResponseDataModel { get; internal set; }
+    public PrintToolResponseDataModel? OctoPrintToolResponseDataModel { get; internal set; }
 }
