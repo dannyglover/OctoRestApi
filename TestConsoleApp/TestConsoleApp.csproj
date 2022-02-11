@@ -11,4 +11,8 @@
       <ProjectReference Include="..\OctoRestApi\OctoRestApi.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Integrative.CrossProtect" Version="0.1.3" />
+    </ItemGroup>
+
 </Project>

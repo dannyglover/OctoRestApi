@@ -8,7 +8,7 @@ namespace OctoRestApi.Internal.Utils;
 
 public static class JsonUtil
 {
-    public static StringContent SerializeObject(object requestData)
+    public static StringContent SerializeObject(object? requestData)
     {
         var serializedObject = JsonConvert.SerializeObject(requestData);
         return new StringContent(serializedObject, Encoding.UTF8, MediaTypeNames.Application.Json);

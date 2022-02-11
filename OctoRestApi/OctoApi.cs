@@ -1,53 +1,51 @@
 // OctoRestApi copyright 2022 Danny Glover.
 
 using OctoRestApi.DataModels;
-using OctoRestApi.Internal.Endpoints;
+using OctoRestApi.Internal.Apis;
 
 namespace OctoRestApi;
 
 public class OctoApi
 {
-    internal HttpClient OctoHttpClient { get; }
-    public OctoDataModel OctoDataModel { get; }
-    private Authentication OctoAuthentication { get; }
-    private PrinterTools OctoPrinterTools { get; }
-    private string _octoprintUrl;
-    private string DebugMessagePrefix { get; }
-    public string OctoprintUrl
-    {
-        get => _octoprintUrl;
-        init => _octoprintUrl = @$"{value}/api/";
-    }
-    public bool DebugMode { get; set; }
+	internal HttpClient OctoHttpClient { get; }
+	public OctoDataModel OctoDataModel { get; }
+	private Authentication OctoAuthentication { get; }
+	private PrinterTools OctoPrinterTools { get; }
+	private string DebugMessagePrefix { get; }
+	private string OctoprintUrl { get; set; }
+	public bool DebugMode { get; set; }
 
-    public OctoApi(string octoprintUrl)
-    {
-        DebugMessagePrefix = "OctoApi:";
-        OctoprintUrl = octoprintUrl;
-        OctoHttpClient = new HttpClient();
-        OctoDataModel = new OctoDataModel();
-        OctoAuthentication = new Authentication(this);
-        OctoPrinterTools = new PrinterTools(this);
-        OctoHttpClient.BaseAddress = new Uri(OctoprintUrl);
-    }
+	public OctoApi(string octoprintUrl)
+	{
+		DebugMessagePrefix = "OctoApi:";
+		OctoprintUrl = octoprintUrl;
+		OctoHttpClient = new HttpClient();
+		OctoDataModel = new OctoDataModel();
+		OctoAuthentication = new Authentication(this);
+		OctoPrinterTools = new PrinterTools(this);
+		OctoHttpClient.BaseAddress = new Uri(OctoprintUrl);
+	}
 
-    #region Authentication
+	#region Authentication
 
-    public async Task Login(string username, string password)
-    {
-        await OctoAuthentication.Login(username, password);
-    }
+	public async Task IssueAppApiKeyRequest(string appName, string username)
+	{
+		await OctoAuthentication.IssueAppApiKeyRequest(appName, username);
+	}
 
-    #endregion
+	public async Task CheckAppApiKeyRequestStatus(string? appToken)
+	{
+		await OctoAuthentication.CheckAppApiKeyRequestStatus(appToken);
+	}
 
-    #region PrintTools
+	#endregion
 
-    public async Task SetTargetToolTemperature(IEnumerable<int> toolIndexes, int temperature)
-    {
-        await OctoPrinterTools.SetTargetTemperature(toolIndexes, temperature);
-    }
-    
-    #endregion
-    
-    
+	#region PrintTools
+
+	public async Task SetTargetToolTemperature(IEnumerable<int> toolIndexes, int temperature)
+	{
+		await OctoPrinterTools.SetTargetTemperature(toolIndexes, temperature);
+	}
+
+	#endregion
 }

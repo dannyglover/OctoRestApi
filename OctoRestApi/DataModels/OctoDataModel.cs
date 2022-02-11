@@ -1,11 +1,23 @@
 // OctoRestApi copyright 2022 Danny Glover.
 
-using OctoRestApi.DataModels.Response;
+using OctoRestApi.DataModels.Response.Authentication;
+using OctoRestApi.DataModels.Response.PrintTool;
 
 namespace OctoRestApi.DataModels;
 
 public class OctoDataModel
 {
-    public LoginResponseDataModel? OctoLoginResponseDataModel { get; internal set; }
-    public PrintToolResponseDataModel? OctoPrintToolResponseDataModel { get; internal set; }
+	#region Authentication
+
+	public LoginResponse? OctoLoginResponse { get; internal set; }
+	public AppApiKeyResponse? OctoAppApiKeyResponse { get; internal set; }
+	public ApiKeyStatusResponse? OctoApiKeyStatusResponse { get; internal set; }
+
+	#endregion
+
+	#region PrintTool
+
+	public PrintToolResponse? OctoPrintToolResponse { get; internal set; }
+
+	#endregion
 }
