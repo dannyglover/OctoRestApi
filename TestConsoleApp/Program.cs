@@ -21,6 +21,13 @@ internal static class Program
 		octoprintUrl = InputUtil.InputReadField("Octoprint Server Url (defaults to octopi.local if omitted): ",
 			ConsoleColor.Green);
 
+		// let the user know if we already have an ApiKey
+		if (!string.IsNullOrEmpty(apiKey))
+		{
+			ConsoleUtil.WriteLine($@"You have already granted the App an ApiKey. Let's continue!",
+				ConsoleColor.Magenta);
+		}
+
 		// default to octoprint defaults if values not provided
 		if (string.IsNullOrEmpty(octoprintUrl))
 		{
@@ -59,11 +66,31 @@ internal static class Program
 				username = "pi";
 			}
 
+			// probe for ApiKey workflow support. If not supported, user must manually create and provide an ApiKey
+			await octoApi.ProbeForApiKeyWorkflowSupport();
+
+			// ensure ApiKey workflow support is enabled/installed
+			if (octoApi.OctoDataModel.OctoApiKeyWorkflowResponse is {Supported: false})
+			{
+				ConsoleUtil.WriteLine(
+					$@"Your Octoprint installation either does not support the ApiKey request model or its plugin is disabled/uninstalled. You'll have to create your ApiKey manually on your Octoprint server at {octoprintUrl}",
+					ConsoleColor.Red);
+
+				var userApiKey = string.Empty;
+
+				// force input for ApiKey
+				while (string.IsNullOrEmpty(userApiKey))
+				{
+					userApiKey = InputUtil.InputReadField("Octoprint ApiKey: ", ConsoleColor.Green);
+					octoApi.SetApiKey(userApiKey);
+				}
+			}
+
 			// start app apikey request
-			await octoApi.IssueAppApiKeyRequest("OctoRestApiTest", username);
+			await octoApi.IssueApiKeyRequest("OctoRestApiTest", username);
 
 			// poll the apikey request plugin to wait for the users decision
-			await octoApi.CheckAppApiKeyRequestStatus(octoApi.OctoDataModel.OctoAppApiKeyResponse
+			await octoApi.CheckApiKeyRequestStatus(octoApi.OctoDataModel.OctoApiKeyRequestResponse
 				?.AppToken);
 
 			// save the api key

@@ -13,6 +13,7 @@ public abstract class Api
 	protected OctoApi OctoApiInstance { get; }
 	private HttpClient OctoHttpClient { get; }
 	protected OctoDataModel OctoDataModel { get; }
+	protected bool RequiresApiKey { get; set; } = true;
 	protected string? DebugMessagePrefix { get; init; }
 
 	protected class WebResponse
@@ -33,7 +34,10 @@ public abstract class Api
 	{
 		OctoHttpClient.DefaultRequestHeaders.Accept.Clear();
 
-		foreach (var header in headers) OctoHttpClient.DefaultRequestHeaders.Accept.Add(header);
+		foreach (var header in headers)
+		{
+			OctoHttpClient.DefaultRequestHeaders.Accept.Add(header);
+		}
 	}
 
 	protected async Task<WebResponse?> IssueRequest(string route, string requestType, object? requestDataModel)
@@ -42,6 +46,12 @@ public abstract class Api
 		OctoHttpClient.DefaultRequestHeaders.Accept.Clear();
 		OctoHttpClient.DefaultRequestHeaders.Accept.Add(
 			new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
+
+		// set the api key
+		if (RequiresApiKey)
+		{
+			OctoHttpClient.DefaultRequestHeaders.Add(@"X-Api-Key", OctoApiInstance.GetApiKey());
+		}
 
 		// issue the request and get the response
 		try

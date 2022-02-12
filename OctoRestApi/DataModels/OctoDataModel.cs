@@ -10,7 +10,8 @@ public class OctoDataModel
 	#region Authentication
 
 	public LoginResponse? OctoLoginResponse { get; internal set; }
-	public AppApiKeyResponse? OctoAppApiKeyResponse { get; internal set; }
+	public ApiKeyWorkflowResponse? OctoApiKeyWorkflowResponse { get; internal set; }
+	public ApiKeyRequestResponse? OctoApiKeyRequestResponse { get; internal set; }
 	public ApiKeyStatusResponse? OctoApiKeyStatusResponse { get; internal set; }
 
 	#endregion

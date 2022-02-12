@@ -10,7 +10,8 @@ namespace OctoRestApi.Internal.Apis;
 
 internal class Authentication : Api
 {
-	private const string AppKeyRequestEndpoint = $@"{Endpoint.Plugin}appkeys/request";
+	private const string ApiKeyProbeEndpoint = $@"{Endpoint.Plugin}/appkeys/probe";
+	private const string ApiKeyRequestEndpoint = $@"{Endpoint.Plugin}/appkeys/request";
 
 	public Authentication(OctoApi octoApi) : base(octoApi)
 	{
@@ -34,11 +35,11 @@ internal class Authentication : Api
 	/// HTTP Body (required):
 	/// user, pass
 	/// </remarks>
-	/// 
+	///
 	public async Task Login(string username, string password)
 	{
 		// setup route information for this api
-		const string route = $"{Endpoint.Api}login";
+		const string route = $"{Endpoint.Api}/login";
 		const string routeCommandPrefix = "> Login |";
 
 		// setup the request data
@@ -79,10 +80,50 @@ internal class Authentication : Api
 
 	#endregion
 
-	#region IssueAppApiKeyRequest
+	#region Probe For Workflow Support
 
 	/// <summary>
-	/// Issues an app apikey request to the Octoprint server
+	/// Issues a request to probe for ApiKey workflow support to the Octoprint server
+	/// </summary>
+	/// <remarks>
+	/// <para />Endpoint: octoprint_url/plugin/appkeys/probe
+	/// <para />Request Type: GET
+	/// <para />
+	/// HTTP Headers:
+	///     Content-Type: application/json
+	/// </remarks>
+	///
+	public async Task ProbeForApiKeyWorkflowSupport()
+	{
+		// setup route information for this api
+		const string route = ApiKeyProbeEndpoint;
+		const string routeCommandPrefix = "> IssueAppApiKeyRequest |";
+		var workflowSupported = false;
+		RequiresApiKey = false;
+
+		// issue the request
+		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Get, null);
+
+		// check if everything is as expected
+		if (webResponse?.ResponseMessage is {StatusCode: HttpStatusCode.NoContent})
+		{
+			workflowSupported = true;
+			Console.WriteLine("plugin workflow support is enabled on server");
+		}
+
+		// assign the response data model
+		OctoDataModel.OctoApiKeyWorkflowResponse = new ApiKeyWorkflowResponse
+		{
+			Supported = workflowSupported
+		};
+	}
+
+	#endregion
+
+	#region Issue App Api Key Request
+
+	/// <summary>
+	/// Issues an apikey request to the Octoprint server
 	/// </summary>
 	/// <param name="appName">The name of the app requesting the api key</param>
 	/// <param name="username">The users octoprint username</param>
@@ -97,14 +138,15 @@ internal class Authentication : Api
 	/// app, user
 	/// </remarks>
 	///
-	public async Task IssueAppApiKeyRequest(string appName, string username)
+	public async Task IssueApiKeyRequest(string appName, string username)
 	{
 		// setup route information for this api
-		const string route = AppKeyRequestEndpoint;
+		const string route = ApiKeyRequestEndpoint;
 		const string routeCommandPrefix = "> IssueAppApiKeyRequest |";
+		RequiresApiKey = false;
 
 		// setup the request data
-		var requestData = new AppApiKeyRequest
+		var requestData = new ApiKeyRequest
 		{
 			AppName = appName,
 			Username = username
@@ -123,17 +165,17 @@ internal class Authentication : Api
 		if (webResponse.ResponseMessage is {StatusCode: HttpStatusCode.Created})
 			// assign the response data model
 		{
-			OctoDataModel.OctoAppApiKeyResponse =
-				JsonConvert.DeserializeObject<AppApiKeyResponse>(webResponse.JsonString);
+			OctoDataModel.OctoApiKeyRequestResponse =
+				JsonConvert.DeserializeObject<ApiKeyRequestResponse>(webResponse.JsonString);
 		}
 	}
 
 	#endregion
 
-	#region CheckAppApiKeyRequestStatus
+	#region Check Api Key Request Status
 
 	/// <summary>
-	/// Issues an app apikey request status update request to the Octoprint server
+	/// Issues an apikey request status update request to the Octoprint server
 	/// </summary>
 	/// <param name="appToken">The app token retrieved from the IssueAppApiRequest function</param>
 	/// <remarks>
@@ -147,11 +189,12 @@ internal class Authentication : Api
 	/// app_token
 	/// </remarks>
 	///
-	public async Task CheckAppApiKeyRequestStatus(string? appToken)
+	public async Task CheckApiKeyRequestStatus(string? appToken)
 	{
 		// setup route information for this api
-		var route = $@"{AppKeyRequestEndpoint}/{appToken}";
+		var route = $@"{ApiKeyRequestEndpoint}/{appToken}";
 		const string routeCommandPrefix = "> CheckAppApiKeyRequestStatus |";
+		RequiresApiKey = false;
 
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Get, null);
@@ -190,8 +233,8 @@ internal class Authentication : Api
 			if (webResponse.ResponseMessage.StatusCode != HttpStatusCode.OK)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1));
-				await CheckAppApiKeyRequestStatus(OctoApiInstance.OctoDataModel
-					.OctoAppApiKeyResponse
+				await CheckApiKeyRequestStatus(OctoApiInstance.OctoDataModel
+					.OctoApiKeyRequestResponse
 					?.AppToken);
 			}
 		}

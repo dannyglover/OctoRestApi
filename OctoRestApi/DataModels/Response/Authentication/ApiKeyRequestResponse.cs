@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace OctoRestApi.DataModels.Response.Authentication;
 
-public class AppApiKeyResponse
+public class ApiKeyRequestResponse
 {
 	[JsonProperty("app_token")] public string? AppToken { get; set; }
 }

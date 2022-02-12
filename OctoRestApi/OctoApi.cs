@@ -1,6 +1,7 @@
 // OctoRestApi copyright 2022 Danny Glover.
 
 using OctoRestApi.DataModels;
+using OctoRestApi.DataModels.Response.Authentication;
 using OctoRestApi.Internal.Apis;
 
 namespace OctoRestApi;
@@ -26,16 +27,42 @@ public class OctoApi
 		OctoHttpClient.BaseAddress = new Uri(OctoprintUrl);
 	}
 
-	#region Authentication
+	#region Value Accessors
 
-	public async Task IssueAppApiKeyRequest(string appName, string username)
+	public string? GetApiKey()
 	{
-		await OctoAuthentication.IssueAppApiKeyRequest(appName, username);
+		return OctoDataModel.OctoApiKeyStatusResponse?.ApiKey;
 	}
 
-	public async Task CheckAppApiKeyRequestStatus(string? appToken)
+	#endregion
+
+	#region Value Setters
+
+	public void SetApiKey(string apiKey)
 	{
-		await OctoAuthentication.CheckAppApiKeyRequestStatus(appToken);
+		OctoDataModel.OctoApiKeyStatusResponse = new ApiKeyStatusResponse
+		{
+			ApiKey = apiKey
+		};
+	}
+
+	#endregion
+
+	#region Authentication
+
+	public async Task ProbeForApiKeyWorkflowSupport()
+	{
+		await OctoAuthentication.ProbeForApiKeyWorkflowSupport();
+	}
+
+	public async Task IssueApiKeyRequest(string appName, string username)
+	{
+		await OctoAuthentication.IssueApiKeyRequest(appName, username);
+	}
+
+	public async Task CheckApiKeyRequestStatus(string? appToken)
+	{
+		await OctoAuthentication.CheckApiKeyRequestStatus(appToken);
 	}
 
 	#endregion
