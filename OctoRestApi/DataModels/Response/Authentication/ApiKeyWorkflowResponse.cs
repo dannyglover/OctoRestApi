@@ -4,5 +4,11 @@ namespace OctoRestApi.DataModels.Response.Authentication;
 
 public class ApiKeyWorkflowResponse
 {
-	public bool Supported { get; set; }
+	public HttpResponseMessage? HttpMessage { get; set; }
+	public DataModel? Data { get; set; }
+
+	public class DataModel
+	{
+		public bool WorkflowSupported { get; set; }
+	}
 }

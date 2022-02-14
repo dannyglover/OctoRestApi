@@ -6,5 +6,11 @@ namespace OctoRestApi.DataModels.Response.Authentication;
 
 public class ApiKeyStatusResponse
 {
-	[JsonProperty("api_key")] public string? ApiKey { get; set; }
+	public HttpResponseMessage? HttpMessage { get; set; }
+	public DataModel? Data { get; set; }
+
+	public class DataModel
+	{
+		[JsonProperty("api_key")] public string? ApiKey { get; set; }
+	}
 }

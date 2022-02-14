@@ -4,7 +4,6 @@ using System.Net;
 using Newtonsoft.Json;
 using OctoRestApi.DataModels.Request.Authentication;
 using OctoRestApi.DataModels.Response.Authentication;
-using OctoRestApi.Internal.Utils;
 
 namespace OctoRestApi.Internal.Apis;
 
@@ -40,7 +39,6 @@ internal class Authentication : Api
 	{
 		// setup route information for this api
 		const string route = $"{Endpoint.Api}/login";
-		const string routeCommandPrefix = "> Login |";
 
 		// setup the request data
 		var requestData = new LoginRequest()
@@ -53,29 +51,17 @@ internal class Authentication : Api
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Post, requestData);
 
-		// handle errors
-		if (webResponse?.JsonString == null)
-		{
-			if (webResponse?.ResponseMessage == null)
-			{
-				return;
-			}
-
-			var responseMessage = webResponse.ResponseMessage.StatusCode switch
-			{
-				HttpStatusCode.Forbidden => @"Incorrect username or password.",
-				_ => $@"StatusCode: {webResponse.ResponseMessage.StatusCode}"
-			};
-
-			ConsoleUtil.WriteLine(@$"{DebugMessagePrefix}{routeCommandPrefix} {responseMessage}",
-				ConsoleColor.Red);
-
-			return;
-		}
-
 		// assign the response data model
-		OctoDataModel.OctoLoginResponse =
-			JsonConvert.DeserializeObject<LoginResponse>(webResponse.JsonString);
+		if (webResponse != null)
+		{
+			OctoDataModel.OctoLoginResponse = new LoginResponse
+			{
+				HttpMessage = webResponse.ResponseMessage,
+				Data = !string.IsNullOrEmpty(webResponse.JsonString)
+					? JsonConvert.DeserializeObject<LoginResponse.DataModel>(webResponse.JsonString)
+					: null
+			};
+		}
 	}
 
 	#endregion
@@ -97,25 +83,23 @@ internal class Authentication : Api
 	{
 		// setup route information for this api
 		const string route = ApiKeyProbeEndpoint;
-		const string routeCommandPrefix = "> IssueAppApiKeyRequest |";
-		var workflowSupported = false;
 		RequiresApiKey = false;
 
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Get, null);
 
-		// check if everything is as expected
-		if (webResponse?.ResponseMessage is {StatusCode: HttpStatusCode.NoContent})
-		{
-			workflowSupported = true;
-			Console.WriteLine("plugin workflow support is enabled on server");
-		}
-
 		// assign the response data model
-		OctoDataModel.OctoApiKeyWorkflowResponse = new ApiKeyWorkflowResponse
+		if (webResponse != null)
 		{
-			Supported = workflowSupported
-		};
+			OctoDataModel.OctoApiKeyWorkflowResponse = new ApiKeyWorkflowResponse
+			{
+				HttpMessage = webResponse.ResponseMessage,
+				Data = new ApiKeyWorkflowResponse.DataModel()
+				{
+					WorkflowSupported = webResponse.ResponseMessage is {StatusCode: HttpStatusCode.NoContent}
+				}
+			};
+		}
 	}
 
 	#endregion
@@ -142,7 +126,6 @@ internal class Authentication : Api
 	{
 		// setup route information for this api
 		const string route = ApiKeyRequestEndpoint;
-		const string routeCommandPrefix = "> IssueAppApiKeyRequest |";
 		RequiresApiKey = false;
 
 		// setup the request data
@@ -155,18 +138,16 @@ internal class Authentication : Api
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Post, requestData);
 
-		// handle errors
-		if (webResponse?.JsonString == null)
+		// assign the response data model
+		if (webResponse != null)
 		{
-			return;
-		}
-
-		// check if everything is as expected
-		if (webResponse.ResponseMessage is {StatusCode: HttpStatusCode.Created})
-			// assign the response data model
-		{
-			OctoDataModel.OctoApiKeyRequestResponse =
-				JsonConvert.DeserializeObject<ApiKeyRequestResponse>(webResponse.JsonString);
+			OctoDataModel.OctoApiKeyRequestResponse = new ApiKeyRequestResponse
+			{
+				HttpMessage = webResponse.ResponseMessage,
+				Data = !string.IsNullOrEmpty(webResponse.JsonString)
+					? JsonConvert.DeserializeObject<ApiKeyRequestResponse.DataModel>(webResponse.JsonString)
+					: null
+			};
 		}
 	}
 
@@ -193,49 +174,35 @@ internal class Authentication : Api
 	{
 		// setup route information for this api
 		var route = $@"{ApiKeyRequestEndpoint}/{appToken}";
-		const string routeCommandPrefix = "> CheckAppApiKeyRequestStatus |";
 		RequiresApiKey = false;
 
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Get, null);
 
-		// handle errors
-		if (webResponse?.JsonString == null)
+		// assign the response data model
+		if (webResponse != null)
 		{
-			return;
-		}
-
-		// check if everything is as expected
-		if (webResponse.ResponseMessage != null)
-		{
-			switch (webResponse.ResponseMessage.StatusCode)
+			OctoApiInstance.OctoDataModel
+				.OctoApiKeyStatusResponse = new ApiKeyStatusResponse
 			{
-				case HttpStatusCode.OK:
-					// assign the response data model
-					OctoDataModel.OctoApiKeyStatusResponse =
-						JsonConvert.DeserializeObject<ApiKeyStatusResponse>(webResponse
-							.JsonString);
-					Console.WriteLine($@"{routeCommandPrefix} requested accepted");
-					break;
-
-				case HttpStatusCode.Accepted:
-					// still waiting for a decision, keep polling
-					Console.WriteLine($@"{routeCommandPrefix} still waiting for approval");
-					break;
-
-				case HttpStatusCode.NotFound:
-					// access denied or request timed out (due to 5 second timeout rule when requesting keys)
-					Console.WriteLine($@"{routeCommandPrefix} access denied or request timed out");
-					break;
-			}
+				HttpMessage = webResponse.ResponseMessage,
+				Data = !string.IsNullOrEmpty(webResponse.JsonString)
+					? JsonConvert.DeserializeObject<ApiKeyStatusResponse.DataModel>(webResponse
+						.JsonString)
+					: null
+			};
 
 			// poll the apikey request octoprint plugin to wait for the users decision
-			if (webResponse.ResponseMessage.StatusCode != HttpStatusCode.OK)
+			if (webResponse.ResponseMessage != null)
 			{
-				await Task.Delay(TimeSpan.FromSeconds(1));
-				await CheckApiKeyRequestStatus(OctoApiInstance.OctoDataModel
-					.OctoApiKeyRequestResponse
-					?.AppToken);
+				var statusCode = webResponse.ResponseMessage.StatusCode;
+
+				// if the request hasn't been approved or denied, continue polling
+				if (statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.NotFound)
+				{
+					await Task.Delay(TimeSpan.FromSeconds(1));
+					await CheckApiKeyRequestStatus(appToken);
+				}
 			}
 		}
 	}

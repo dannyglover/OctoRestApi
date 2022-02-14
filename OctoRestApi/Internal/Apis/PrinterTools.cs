@@ -35,7 +35,6 @@ internal class PrinterTools : Api
 	{
 		// setup route information for this api
 		const string route = PrinterToolEndpoint;
-		const string routeCommandPrefix = "> SetTargetTemperature |";
 
 		// setup the request data
 		var requestData = new PrintToolRequest
@@ -47,16 +46,17 @@ internal class PrinterTools : Api
 		// issue the request
 		var webResponse = await IssueRequest(route, WebRequestMethods.Http.Post, requestData);
 
-		// handle errors
-		if (webResponse?.JsonString == null)
-		{
-			return;
-		}
-
 		// assign the response data model
-		OctoDataModel.OctoPrintToolResponse = new PrintToolResponse
+		if (webResponse != null)
 		{
-			Success = webResponse.ResponseMessage is {StatusCode: HttpStatusCode.NoContent}
-		};
+			OctoDataModel.OctoPrintToolResponse = new PrintToolResponse
+			{
+				HttpMessage = webResponse.ResponseMessage,
+				Data = new PrintToolResponse.DataModel()
+				{
+					Success = webResponse.ResponseMessage is {StatusCode: HttpStatusCode.NoContent}
+				}
+			};
+		}
 	}
 }

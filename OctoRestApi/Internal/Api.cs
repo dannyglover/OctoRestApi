@@ -65,8 +65,6 @@ public abstract class Api
 				_ => null
 			};
 
-			httpResponseMessage?.EnsureSuccessStatusCode();
-
 			// abort if the response was null
 			if (httpResponseMessage == null)
 			{
@@ -86,7 +84,7 @@ public abstract class Api
 		{
 			if (OctoApiInstance.DebugMode)
 			{
-				Console.WriteLine($"Exception caught: {exception.Message}");
+				Console.WriteLine($"Exception caught: {exception.Message} - StatusCode: {exception.StatusCode}");
 			}
 
 			return new WebResponse()

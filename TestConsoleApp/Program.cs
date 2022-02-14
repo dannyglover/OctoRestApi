@@ -1,6 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Net;
 using OctoRestApi;
+using OctoRestApi.DataModels.Response.Authentication;
 using OctoRestApi.Internal.Utils;
 using TestConsoleApp.Utils;
 
@@ -10,7 +12,7 @@ internal static class Program
 {
 	private static async Task Main(string[] args)
 	{
-		var octoApiTestDataPath = "octoApiTest.dat";
+		var octoApiTestDataPath = "octoApiTest.bin";
 		var apiKey = SecureDataUtil.ReadData(octoApiTestDataPath);
 		string octoprintUrl;
 
@@ -49,7 +51,18 @@ internal static class Program
 			DebugMode = true
 		};
 
-		// request an api key if one doesn't already exist
+		/*
+		await octoApi.Login("pi", "#sNoT33ykG%Bz3");
+
+		if (octoApi.OctoDataModel.OctoLoginResponse?.Data != null)
+		{
+			Console.WriteLine($@"LOGIN > returned username {octoApi.OctoDataModel.OctoLoginResponse?.Data.Name}");
+		}*/
+
+		// set the ApiKey from the saved data (if any)
+		octoApi.SetApiKey(apiKey);
+
+		// request an ApiKey if one doesn't already exist
 		if (string.IsNullOrEmpty(apiKey))
 		{
 			Console.WriteLine(
@@ -70,47 +83,67 @@ internal static class Program
 			await octoApi.ProbeForApiKeyWorkflowSupport();
 
 			// ensure ApiKey workflow support is enabled/installed
-			if (octoApi.OctoDataModel.OctoApiKeyWorkflowResponse is {Supported: false})
+			if (octoApi.OctoDataModel.OctoApiKeyWorkflowResponse?.Data != null)
 			{
-				ConsoleUtil.WriteLine(
-					$@"Your Octoprint installation either does not support the ApiKey request model or its plugin is disabled/uninstalled. You'll have to create your ApiKey manually on your Octoprint server at {octoprintUrl}",
-					ConsoleColor.Red);
-
-				var userApiKey = string.Empty;
-
-				// force input for ApiKey
-				while (string.IsNullOrEmpty(userApiKey))
+				if (!octoApi.OctoDataModel.OctoApiKeyWorkflowResponse.Data.WorkflowSupported)
 				{
-					userApiKey = InputUtil.InputReadField("Octoprint ApiKey: ", ConsoleColor.Green);
-					octoApi.SetApiKey(userApiKey);
+					ConsoleUtil.WriteLine(
+						$@"Your Octoprint installation either does not support the ApiKey request model or its plugin is disabled/uninstalled. You'll have to create your ApiKey manually on your Octoprint server at {octoprintUrl}",
+						ConsoleColor.Red);
+
+					var userApiKey = string.Empty;
+
+					// force input for ApiKey
+					while (string.IsNullOrEmpty(userApiKey))
+					{
+						userApiKey = InputUtil.InputReadField("Octoprint ApiKey: ", ConsoleColor.Green);
+						octoApi.SetApiKey(userApiKey);
+					}
 				}
 			}
 
-			// start app apikey request
+			// start ApiKey request
 			await octoApi.IssueApiKeyRequest("OctoRestApiTest", username);
 
-			// poll the apikey request plugin to wait for the users decision
-			await octoApi.CheckApiKeyRequestStatus(octoApi.OctoDataModel.OctoApiKeyRequestResponse
-				?.AppToken);
+			// poll the ApiKey request status to await the users decision
+			var apiKeyRequestDataModel =
+				octoApi.OctoDataModel.OctoApiKeyRequestResponse?.Data;
+			await octoApi.CheckApiKeyRequestStatus(apiKeyRequestDataModel?.AppToken);
 
-			// save the api key
-			if (octoApi.OctoDataModel.OctoApiKeyStatusResponse?.ApiKey != null)
+			// if the user denied the request, post message and return
+			if (octoApi.OctoDataModel.OctoApiKeyStatusResponse?.HttpMessage != null)
+			{
+				if (octoApi.OctoDataModel.OctoApiKeyStatusResponse.HttpMessage.StatusCode != HttpStatusCode.OK)
+				{
+					if (octoApi.OctoDataModel.OctoApiKeyStatusResponse.HttpMessage.StatusCode ==
+					    HttpStatusCode.NotFound)
+					{
+						ConsoleUtil.WriteLine("You either denied the access request, or it timed out. Exiting.",
+							ConsoleColor.Red);
+						return;
+					}
+				}
+			}
+
+			// save the ApiKey
+			if (octoApi.OctoDataModel.OctoApiKeyStatusResponse?.Data?.ApiKey != null)
 			{
 				var writeSuccess = SecureDataUtil.WriteData(
-					octoApi.OctoDataModel.OctoApiKeyStatusResponse.ApiKey,
+					octoApi.OctoDataModel.OctoApiKeyStatusResponse.Data.ApiKey,
 					octoApiTestDataPath);
 
 				if (writeSuccess)
 				{
-					Console.WriteLine(
-						$@"Api key is: {octoApi.OctoDataModel.OctoApiKeyStatusResponse.ApiKey}");
+					ConsoleUtil.WriteLine($@"Thank you for granting access. We now have an ApiKey. Let's continue!",
+						ConsoleColor.Magenta);
 				}
 			}
 		}
 
 		// set tool 0 (hot-end) to 50 degrees
-		//await octoApi.SetTargetToolTemperature(new[] {0}, 80);
+		await octoApi.SetTargetToolTemperature(new[] {0}, 80);
 
-		//Console.WriteLine($@"Tool 0 temperature request success: {octoApi.OctoDataModel.OctoPrintToolResponseDataModel is {Success: true}}");
+		Console.WriteLine(
+			$@"Tool 0 temperature request success: {octoApi.OctoDataModel.OctoPrintToolResponse?.Data is {Success: true}}");
 	}
 }

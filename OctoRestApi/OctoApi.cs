@@ -31,7 +31,7 @@ public class OctoApi
 
 	public string? GetApiKey()
 	{
-		return OctoDataModel.OctoApiKeyStatusResponse?.ApiKey;
+		return OctoDataModel.OctoApiKeyStatusResponse?.Data?.ApiKey;
 	}
 
 	#endregion
@@ -42,13 +42,22 @@ public class OctoApi
 	{
 		OctoDataModel.OctoApiKeyStatusResponse = new ApiKeyStatusResponse
 		{
-			ApiKey = apiKey
+			HttpMessage = null,
+			Data = new ApiKeyStatusResponse.DataModel
+			{
+				ApiKey = apiKey
+			}
 		};
 	}
 
 	#endregion
 
 	#region Authentication
+
+	public async Task Login(string username, string password)
+	{
+		await OctoAuthentication.Login(username, password);
+	}
 
 	public async Task ProbeForApiKeyWorkflowSupport()
 	{

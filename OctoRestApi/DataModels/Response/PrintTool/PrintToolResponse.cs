@@ -4,5 +4,11 @@ namespace OctoRestApi.DataModels.Response.PrintTool;
 
 public class PrintToolResponse
 {
-	public bool Success { get; set; }
+	public HttpResponseMessage? HttpMessage { get; set; }
+	public DataModel? Data { get; set; }
+
+	public class DataModel
+	{
+		public bool Success { get; set; }
+	}
 }
