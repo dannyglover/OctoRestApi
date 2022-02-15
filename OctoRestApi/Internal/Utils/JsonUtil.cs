@@ -6,11 +6,11 @@ using Newtonsoft.Json;
 
 namespace OctoRestApi.Internal.Utils;
 
-public static class JsonUtil
+internal static class JsonUtil
 {
-    public static StringContent SerializeObject(object? requestData)
-    {
-        var serializedObject = JsonConvert.SerializeObject(requestData);
-        return new StringContent(serializedObject, Encoding.UTF8, MediaTypeNames.Application.Json);
-    }
+	public static StringContent SerializeObject(object? requestData)
+	{
+		var serializedObject = JsonConvert.SerializeObject(requestData);
+		return new StringContent(serializedObject, Encoding.UTF8, MediaTypeNames.Application.Json);
+	}
 }

@@ -8,7 +8,7 @@ using OctoRestApi.Internal.Utils;
 
 namespace OctoRestApi.Internal;
 
-public abstract class Api
+internal abstract class Api
 {
 	protected OctoApi OctoApiInstance { get; }
 	private HttpClient OctoHttpClient { get; }

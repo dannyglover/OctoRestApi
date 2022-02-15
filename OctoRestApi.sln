@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoRestApi", "OctoRestApi\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{A61B0F31-1899-41E4-BCB3-458148637181}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsoleApp", "TestConsoleApp\TestConsoleApp.csproj", "{2EE806DA-F654-40E4-AC5C-859FE53D17A9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,9 +18,5 @@ Global
 		{A61B0F31-1899-41E4-BCB3-458148637181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A61B0F31-1899-41E4-BCB3-458148637181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A61B0F31-1899-41E4-BCB3-458148637181}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EE806DA-F654-40E4-AC5C-859FE53D17A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EE806DA-F654-40E4-AC5C-859FE53D17A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EE806DA-F654-40E4-AC5C-859FE53D17A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EE806DA-F654-40E4-AC5C-859FE53D17A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -2,7 +2,7 @@
 
 namespace OctoRestApi.Internal;
 
-public static class Endpoint
+internal static class Endpoint
 {
 	public const string Api = "/api";
 	public const string Plugin = "/plugin";
