@@ -2,7 +2,6 @@
 
 using System.Net;
 using OctoRestApi;
-using OctoRestApi.DataModels.Response.Authentication;
 using OctoRestApi.Internal.Utils;
 using TestConsoleApp.Utils;
 
@@ -70,7 +69,7 @@ internal static class Program
 			var username =
 				InputUtil.InputReadField("Octoprint Username (defaults to pi if omitted): ", ConsoleColor.Green);
 			ConsoleUtil.WriteLine(
-				$@"Please go to {octoprintUrl} and accept the access request to continue. Come back here after you're done.",
+				$@"We'll try and automatically open your browser at: {octoprintUrl} for you to accept the access request we sent. Come back here after you're done.",
 				ConsoleColor.Magenta);
 
 			// default to pi username if username not provided
@@ -104,6 +103,9 @@ internal static class Program
 
 			// start ApiKey request
 			await octoApi.IssueApiKeyRequest("OctoRestApiTest", username);
+
+			// open the octoprint url with the systems browser
+			Platform.OpenBrowser(octoprintUrl);
 
 			// poll the ApiKey request status to await the users decision
 			var apiKeyRequestDataModel =
